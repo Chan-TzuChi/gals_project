@@ -1,0 +1,16 @@
+{
+  "python": "3.12.10",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "os_version": "10.0.26200",
+  "processor": "Intel(R) Core(TM) Ultra 9 185H",
+  "cpu_count_logical": 22,
+  "ram_gb": 31.4,
+  "numpy": "2.5.1",
+  "scipy": "1.18.0",
+  "sklearn": "1.9.0",
+  "pandas": "3.0.5",
+  "parallelism": {
+    "rf_n_jobs": 1,
+    "note": "n_jobs=1 means each RandomForestClassifier fit is single-threaded; no joblib/multiprocessing parallelism is used inside model training. gals.runner uses a separate subprocess per method only for the method_timeouts wall-clock cap (ACkELO on corel5k/mediamill), not for speed."
+  }
+}

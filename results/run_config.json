@@ -1,0 +1,119 @@
+{
+  "ga": {
+    "population_size": 10,
+    "n_generations": 20,
+    "crossover_rate": 0.75,
+    "mutation_rate": 0.025,
+    "elitism_ratio": 0.4,
+    "alpha": 0.9,
+    "fitness_threshold_theta_base": 0.75,
+    "fitness_threshold_is_adaptive": false,
+    "compensation_delta": 0.075,
+    "theta_after_compensation": 0.675,
+    "ideal_ratio": 0.5,
+    "stall_tolerance": 0.01,
+    "stall_generations": 5,
+    "max_best_set": null
+  },
+  "random_forest": {
+    "n_estimators": 100,
+    "max_depth": null,
+    "min_samples_split": 2,
+    "n_jobs": 1,
+    "random_state": "= per-seed value"
+  },
+  "split": {
+    "test_size": 0.3,
+    "val_size_of_remaining_train": 0.3,
+    "effective_ratio": "train_sub 49% / val 21% / test 30%",
+    "method": "sklearn.train_test_split, shuffle=True, no stratify",
+    "cross_validation": false,
+    "ga_validation_set_equals_final_test_set": false,
+    "note": "GA fitness (run_gals) uses split['val'] only; the final M-model ensemble is retrained on the full split['train'] and split['test'] is touched exactly once, after GA selection is frozen. val and test are disjoint index sets produced by the same split_data() call."
+  },
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "seed_plan": {
+    "batch1_small_datasets": {
+      "datasets": [
+        "emotions",
+        "flags",
+        "Gnegative",
+        "Gpositive",
+        "Plant",
+        "scene",
+        "yeast"
+      ],
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "methods": [
+        "GALS",
+        "BR",
+        "CC",
+        "LP",
+        "RAkELD",
+        "RAkELO",
+        "ACkELD",
+        "ACkELO"
+      ]
+    },
+    "batch2_cal500": {
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "methods": "all (ACkELD/ACkELO fast here, N=502)"
+    },
+    "batch2_corel5k": {
+      "seeds_default": [
+        0,
+        1,
+        2
+      ],
+      "seeds_ACkELO": [
+        0
+      ],
+      "note": "ACkELO capped at 1 seed + 12h wall-clock timeout; ACkELD given a defensive 6h timeout. Both DNF past their cap are recorded as status=DNF, not silently dropped."
+    },
+    "batch3_mediamill": {
+      "seeds_default": [
+        0,
+        1,
+        2
+      ],
+      "seeds_ACkELO": [
+        0
+      ],
+      "note": "same ACkELD/ACkELO timeout treatment as corel5k."
+    }
+  },
+  "run_counts_note": "actual per-(dataset, method) execution counts and outcomes (ok/DNF/not_implemented/error/skipped_seed_limit) are in results/run_counts.json, generated post-hoc by gals.analyze.record_run_counts() over the raw CSVs -- not duplicated here since this file is written before the sweep runs."
+}

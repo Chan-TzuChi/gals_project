@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+data/
+results/*.csv
+.ipynb_checkpoints/
+*.log
+*.bak
+CLAUDE.md
+results/ackel_tuning.json
+results/run_counts.json
+results/alpha_sweep_summary.md
+results/batch1_summary.md
+results/ideal_ratio_sweep_summary.md

@@ -29,10 +29,10 @@ METRICS = ["hamming_loss", "subset_accuracy", "weighted_f1",
 def _timeout_worker(fn, args, kwargs, conn):
     """Classify the outcome INSIDE the worker, where the real exception
     object is available, rather than collapsing everything to a string and
-    trying to reclassify it after crossing the process boundary (the
-    previous version's `raise RuntimeError(payload)` re-raise dance lost
-    NotImplementedError/MemoryError's identity and mis-reported both as a
-    generic error)."""
+    trying to reclassify it after crossing the process boundary: an
+    exception re-raised on the parent side arrives as a plain message, so
+    NotImplementedError and MemoryError lose their identity and both end up
+    recorded as a generic error."""
     try:
         result = fn(*args, **kwargs)
         conn.send(("ok", result))
@@ -60,15 +60,16 @@ def _run_many_with_timeout(jobs):
     single-job path -- a job stuck at its timeout must not delay recording
     one that already finished.
 
-    BUG FIXED 2026-08-02 (also applies here): a Pipe's OS-level buffer is
-    small (~64KB on Windows); a worker whose result exceeds that blocks in
-    send() until the buffer is drained. The old single-job code blocked on
-    proc.join(timeout) BEFORE ever reading the pipe, so a worker that
-    finished in seconds with a large result (a numpy prediction array)
-    could never deliver it and would falsely read as a full-timeout DNF.
-    Fix: poll every pending job's connection in a loop instead of blocking
-    on join() first, so the parent is always ready to drain each pipe
-    before its buffer fills.
+    Pipe buffering dictates how results must be collected. A Pipe's
+    OS-level buffer is small (~64KB on Windows), so a worker whose result
+    exceeds it blocks in send() until the parent drains the buffer.
+    Calling proc.join(timeout) before reading the pipe therefore deadlocks
+    for any large result (a numpy prediction array): the worker cannot exit
+    until the parent reads, and the parent does not read until the worker
+    exits, so a job that computed its answer in seconds is held to its
+    deadline and recorded as a full-timeout DNF. This implementation polls
+    every pending job's connection in a loop instead, so the parent is
+    always ready to drain each pipe before its buffer fills.
     """
     procs, conns, deadlines = {}, {}, {}
     for name, fn, args, kwargs, timeout_sec in jobs:

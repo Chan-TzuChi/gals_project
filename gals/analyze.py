@@ -121,7 +121,9 @@ def record_run_counts(csv_paths, out_path=None):
 
 
 def to_markdown(report, path):
-    with open(path, "w") as f:
+    # encoding is explicit: the default depends on the machine's locale, which
+    # silently produced non-UTF-8 report files on a cp950 Windows host.
+    with open(path, "w", encoding="utf-8") as f:
         for metric, r in report.items():
             f.write(f"\n## {metric}\n\n")
             f.write(r["table"].to_markdown())

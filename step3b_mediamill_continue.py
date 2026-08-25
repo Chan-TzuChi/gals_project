@@ -1,15 +1,18 @@
-"""Use this once the currently-running step3_mediamill.py (started with the
-OLD sequential + deadlock-prone timeout code) gets stuck at LP/ACkELD/
-ACkELO and you've killed it. This script:
+"""Continues the mediamill batch after the initial run. The earlier driver
+for this dataset is not retained in the repository; the configuration it
+used is recorded in results/run_config.json under batch3_mediamill.
+
+This script:
 
 1. Reads whatever is already in results/mediamill_raw.csv for seed 0
-   (likely GALS/BR/CC at minimum -- these ran fine on the old code).
-2. Runs the METHODS STILL MISSING for seed 0 using the fixed, parallel
-   runner (LP/ACkELD/ACkELO now launch together -- max 6h, not up to 18h),
+   (likely GALS/BR/CC at minimum).
+2. Runs the METHODS STILL MISSING for seed 0 using the parallel runner with
+   per-method wall-clock caps (LP/ACkELD/ACkELO launch together, so the worst
+   case is max(caps) = 6h rather than their sum),
    using m_override to reuse seed 0's already-known M instead of
    recomputing GALS (which took 16.7h -- redoing it here to throw the row
    away would defeat the entire point of "continuing").
-3. Runs seeds 1, 2 fully with the fixed code (GALS included -- these
+3. Runs seeds 1, 2 in full (GALS included -- these
    haven't run at all yet, so there's nothing to reuse).
 
 Safe to re-run: it only ever adds rows for (seed, method) pairs not
@@ -50,8 +53,8 @@ if __name__ == "__main__":
         if len(gals_seed0) == 0:
             raise RuntimeError(
                 "seed 0 has no GALS row yet -- nothing to reuse. Don't run "
-                "this script until seed 0's GALS row exists in the CSV "
-                "(if GALS itself got killed, just restart step3_mediamill.py).")
+                "this script until seed 0's GALS row exists in the CSV; it is "
+                "produced by a full mediamill seed-0 run.")
         m0 = int(gals_seed0.iloc[0]["n_models"])
         print(f"reusing seed 0's known M={m0} (not recomputing GALS)")
 
@@ -75,7 +78,7 @@ if __name__ == "__main__":
             rows.append(r)
         print(f"seed 0 completed: {[r['method'] for r in rows]}")
 
-    # --- seeds 1, 2: run fully with the fixed code (nothing to reuse yet) ---
+    # --- seeds 1, 2: run in full (nothing to reuse yet) ---
     run_dataset("mediamill", X, Y, seeds=[1, 2], cfg=cfg, methods=ALL_METHODS,
                out_csv=CSV, verbose=True, resume=True,
                method_timeouts={"LP": TIMEOUT, "ACkELD": TIMEOUT, "ACkELO": TIMEOUT})

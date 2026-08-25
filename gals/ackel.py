@@ -27,7 +27,7 @@ section), the same way the S~(b) coefficient (2, not 1) did.
    this condition is rarely true, so in practice most iterations fall through
    to "pick the best of the <=5 checked candidates" rather than "accept the
    first improving one". This is not a bug to fix -- it's what the official
-   code does -- but it changes the expected behaviour vs. a naive reading of
+   code does -- but it changes the expected behaviour vs. a literal reading of
    Algorithm 2, so it is worth a footnote.
 
 3. Disjoint mode always tests at a fixed threshold of 0.5 (see run.m); only

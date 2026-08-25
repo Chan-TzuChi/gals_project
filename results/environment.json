@@ -11,6 +11,6 @@
   "pandas": "3.0.5",
   "parallelism": {
     "rf_n_jobs": 1,
-    "note": "n_jobs=1 means each RandomForestClassifier fit is single-threaded; no joblib/multiprocessing parallelism is used inside model training. gals.runner uses a separate subprocess per method only for the method_timeouts wall-clock cap (ACkELO on corel5k/mediamill), not for speed."
+    "note": "n_jobs=1 means each RandomForestClassifier fit is single-threaded; no joblib/multiprocessing parallelism is used inside model training. gals.runner uses a separate subprocess per method only for the method_timeouts wall-clock cap (ACkELD and ACkELO on corel5k/mediamill), not for speed."
   }
 }

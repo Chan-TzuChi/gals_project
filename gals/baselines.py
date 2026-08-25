@@ -106,8 +106,10 @@ def rakel_overlap(Xtr, Ytr, Xte, seed, rf_params, k=3, m=10):
 # Only the 6 datasets that use the SAME feature representation as the
 # original paper can reuse its tuned (gamma, beta) directly. The PseAAC
 # variants of Gnegative/Gpositive/Plant (paper used the different "Go"
-# feature set) and corel5k (absent from the paper's 30 datasets) are left
-# as None and must be tuned locally with gals.ackel.tune_ackel_params().
+# feature set) were tuned locally with gals.ackel.tune_ackel_params();
+# corel5k (absent from the paper's 30 datasets) uses a stated default, for
+# the reason given at its entry below. results/ackel_tuning.json records
+# the provenance of every dataset's values.
 # --------------------------------------------------------------------------
 ACKEL_PARAMS = {
     "cal500":    dict(gamma=2.0**0, beta_d=0.9, beta_o=0.3),

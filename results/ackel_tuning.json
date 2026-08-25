@@ -1,0 +1,37 @@
+{
+  "note": "Provenance of the ACkEL (gamma, beta_d, beta_o) values. The values used at run time are hard-coded in gals/baselines.py (ACKEL_PARAMS); this file records where each one came from, because they do not all have the same origin. 'paper_table1' = reused from the original ACkEL paper's Table 1, valid because the dataset uses the same feature representation. 'tuned_locally' = grid-searched here, because the PseAAC feature representation differs from the 'Go' variant the paper used, so its published values do not apply. 'default_not_tuned' = a stated default that was never tuned; see corel5k_exception.",
+  "parameter_source": {
+    "cal500": "paper_table1",
+    "emotions": "paper_table1",
+    "flags": "paper_table1",
+    "scene": "paper_table1",
+    "yeast": "paper_table1",
+    "mediamill": "paper_table1",
+    "Gnegative": "tuned_locally",
+    "Gpositive": "tuned_locally",
+    "Plant": "tuned_locally",
+    "corel5k": "default_not_tuned"
+  },
+  "tuning_protocol": "gals.ackel.tune_ackel_params(), 15x5 grid (gamma in 2**-3 .. 2**11, beta in 0.1 .. 0.9), k=3, seed=0, selected by hamming_loss on a held-out split. Run 2026-07-31.",
+  "corel5k_exception": "corel5k uses gamma=2**0, beta_d=0.5, beta_o=0.5. These are defaults, not search results: corel5k is absent from the original paper's 30 datasets, and ACkELd is O(M^2 N^2 n), so with L=374 and N=5000 a single (gamma, beta) evaluation runs for hours and the 15x5 grid is not feasible on this hardware. Reported corel5k ACkEL numbers are therefore obtained at an untuned operating point, which should be stated alongside them rather than left implicit.",
+  "tuned": {
+    "Gnegative": {
+      "gamma": 0.125,
+      "gamma_overlap": 0.125,
+      "beta_d": 0.1,
+      "beta_o": 0.1
+    },
+    "Gpositive": {
+      "gamma": 0.125,
+      "gamma_overlap": 0.125,
+      "beta_d": 0.1,
+      "beta_o": 0.1
+    },
+    "Plant": {
+      "gamma": 0.125,
+      "gamma_overlap": 0.125,
+      "beta_d": 0.9,
+      "beta_o": 0.1
+    }
+  }
+}

@@ -47,7 +47,10 @@ def read_arff(path):
     become NaN.
     """
     names, rows, sparse_rows, in_data = [], [], [], False
-    with open(path, "r", errors="replace") as fh:
+    # encoding is explicit so the same file parses identically regardless of
+    # the reader's locale; errors are not suppressed, so a file this parser
+    # cannot decode fails loudly instead of yielding silently altered labels.
+    with open(path, "r", encoding="utf-8") as fh:
         for line in fh:
             s = line.strip()
             if not s or s.startswith("%"):

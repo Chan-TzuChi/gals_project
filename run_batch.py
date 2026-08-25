@@ -4,12 +4,17 @@
           yeast), 10 seeds, all methods incl. ACkEL -- pipeline sanity check,
           not final numbers. Look at GALS's M range and the 4 headline
           metrics' rough direction before committing to the slow batches.
-  batch2  cal500 (10 seeds, all methods) + corel5k (3 seeds; ACkELD gets all
-          3, ACkELO gets 1 seed with a 12h wall-clock cap -- both methods
-          must actually be attempted on corel5k, not skipped, to get real
-          numbers for the comparison).
+  batch2  cal500 (10 seeds, all methods) + corel5k (3 seeds; every method
+          runs the full seed list under the unified 24h wall-clock cap --
+          ACkELD and ACkELO must actually be attempted on corel5k, not
+          skipped, to get real numbers for the comparison).
   batch3  mediamill (3 seeds; same ACkELD/ACkELO treatment as corel5k, for
           the same reason).
+
+The corel5k and mediamill results in results/ were not produced by this
+driver: see step2b_corel5k_reverify.py, step3b_mediamill_continue.py and
+rerun_corel5k_ackeld.py, which apply no per-method seed limit. The seed
+plan and caps actually used are recorded in results/run_config.json.
 
 DNF policy: if ACkELO exceeds its timeout it is recorded as status="DNF"
 (Madjarov et al. 2012 convention) and the sweep continues -- no max_pool
@@ -73,11 +78,14 @@ def main():
     ap.add_argument("batch", choices=["batch1", "batch2", "batch3"])
     ap.add_argument("--datasets", default=None,
                     help="comma-separated subset (batch1 only)")
-    ap.add_argument("--ackelo-timeout-hours", type=float, default=12.0)
-    ap.add_argument("--ackeld-timeout-hours", type=float, default=6.0,
-                    help="defensive cap only -- ACkELD is typically fast; "
-                    "this just stops an unexpected blow-up from hanging "
-                    "the whole batch")
+    ap.add_argument("--ackelo-timeout-hours", type=float, default=24.0,
+                    help="unified wall-clock cap, applied identically to "
+                    "ACkELD and ACkELO so that reporting a run as a result "
+                    "or as DNF does not depend on which method it is")
+    ap.add_argument("--ackeld-timeout-hours", type=float, default=24.0,
+                    help="unified wall-clock cap, applied identically to "
+                    "ACkELD and ACkELO so that reporting a run as a result "
+                    "or as DNF does not depend on which method it is")
     args = ap.parse_args()
 
     cfg = GAConfig()   # confirmed defaults, do not change
@@ -92,13 +100,13 @@ def main():
         timeouts = {"ACkELD": args.ackeld_timeout_hours * 3600,
                    "ACkELO": args.ackelo_timeout_hours * 3600}
         run("corel5k", range(3), ALL_METHODS, cfg,
-           method_timeouts=timeouts, method_seed_limits={"ACkELO": 1})
+           method_timeouts=timeouts)
 
     elif args.batch == "batch3":
         timeouts = {"ACkELD": args.ackeld_timeout_hours * 3600,
                    "ACkELO": args.ackelo_timeout_hours * 3600}
         run("mediamill", range(3), ALL_METHODS, cfg,
-           method_timeouts=timeouts, method_seed_limits={"ACkELO": 1})
+           method_timeouts=timeouts)
 
 
 if __name__ == "__main__":

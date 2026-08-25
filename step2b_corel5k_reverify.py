@@ -72,11 +72,14 @@ if __name__ == "__main__":
     dnfd = [m for m in ("ACkELD", "ACkELO") if m not in finished]
 
     if dnfd:
-        print(f"\n{dnfd} DNF'd on seed 0 (confirmed with fixed code) "
+        print(f"\n{dnfd} DNF'd on seed 0 "
              "-> seeds 1, 2 not attempted for these.")
-        reason = "seed 0 verified >6hr with fixed timeout code, seeds 1-2 not attempted"
-        append([dict(method=m, seed=s, status=reason, dataset="corel5k",
-                    runtime_sec=np.nan) for m in dnfd for s in (1, 2)])
+        # Superseded by rerun_corel5k_ackeld.py, which re-runs all three seeds
+        # under the unified 24h cap recorded in results/run_config.json.
+        append([dict(method=m, seed=s, dataset="corel5k", runtime_sec=np.nan,
+                    status=f"{m} did not complete within the 6h cap "
+                           "applied in this batch")
+               for m in dnfd for s in (1, 2)])
 
     if finished:
         print(f"\n{finished} finished within 6h on seed 0 -> running seeds 1, 2 "

@@ -1,4 +1,5 @@
 {
+  "revision_note": "This file was revised on 2026-08-24 to record the unified 24h wall-clock cap and to correct two entries that did not match the recorded results: the per-method seed limits were not in effect (ACkELO completed three seeds on both corel5k and mediamill), and the mediamill cap differed from corel5k. Earlier per-method caps are retained in as_run_history.",
   "ga": {
     "population_size": 10,
     "n_generations": 20,
@@ -30,6 +31,15 @@
     "cross_validation": false,
     "ga_validation_set_equals_final_test_set": false,
     "note": "GA fitness (run_gals) uses split['val'] only; the final M-model ensemble is retrained on the full split['train'] and split['test'] is touched exactly once, after GA selection is frozen. val and test are disjoint index sets produced by the same split_data() call."
+  },
+  "runtime_measurement_conditions": {
+    "threading": "Common to every run in the study. rf_params n_jobs=1 bounds scikit-learn's own parallelism only; it does not bound the BLAS backend under numpy. OpenBLAS was left at its default of one thread per logical core (22 on this machine) and no OMP_NUM_THREADS, MKL_NUM_THREADS or OPENBLAS_NUM_THREADS limit was set. Measured on the corel5k ACkELD re-run: a single ACkELD process uses about 3.85 cores with the machine to itself, and three concurrent processes used about 12.4 of the 22 logical cores in total, so the machine was not saturated and the three seeds were not competing for cores. This workload does not scale to the full core count, and running it alone rather than three-up does not materially change its wall clock.",
+    "batch1_and_cal500": "Methods without a wall-clock cap execute sequentially in-process within run_one_seed, one dataset at a time. Across these eight datasets the per-seed runtime spread tracks the per-seed workload spread (GALS n_rf_trainings), so the recorded times are consistent with sequential execution: e.g. Gnegative 2.04x workload / 2.08x runtime, cal500 2.00x / 2.06x, scene 1.39x / 1.49x. flags is the exception at 1.87x workload against 17.0x runtime (4.0-67.5s); the absolute differences are seconds, but workload alone does not account for that spread, so it is recorded here rather than explained away.",
+    "corel5k_seed0": "Logged twice, with consistent results: GALS 354.2s in the initial batch2 run and 353.3s on resume, a 0.25% difference.",
+    "corel5k_seeds_1_2": "No execution log for these two seeds was retained; only seed 0 appears in any log. They were written during a period in which the mediamill run was active, so they are not solo measurements. Their GALS rows record identical work to seed 0 (M=34, 34 RF fits, 5 generations) yet 765.1s and 599.6s against seed 0's 353.3s.",
+    "mediamill": "Measured while other work, including the corel5k seeds above, was running. GALS did identical work on all three seeds (M=34, 34 RF fits, 5 generations) yet took 16.67h, 22.40h and 11.05h.",
+    "interpretation_of_runtime_spread": "For corel5k and mediamill the GALS workload is identical across seeds (spread 1.00x) while the runtime spread is 2.17x and 2.03x, so that spread measures the execution environment, not the method. A mean +/- standard deviation over these seeds is therefore not a measure of the method's runtime variability and should not be presented as one. The mechanism is not established: core contention is ruled out by the measurement recorded under 'threading', which leaves memory bandwidth, sustained-load clock behaviour on this laptop-class part, and thread placement across a hybrid 16-physical / 22-logical core CPU (Core Ultra 9 185H, P-cores and E-cores differing in per-core throughput) as candidates that these runs cannot distinguish. The eight sequentially-run datasets are not affected in this way.",
+    "corel5k_ackeld_gals_ratio": "ACkELD / GALS wall-clock on corel5k, computed per seed: 124.5x (seed 0), 58.0x (seed 1), 73.3x (seed 2); 77.0x if the two means are divided. The 2.15x spread across those three figures comes from the denominator: ACkELD's own runtimes span 1.009x (43970-44348s) while the GALS runtimes they are divided by span 2.17x (353-765s) for identical work. The order of magnitude holds regardless -- ACkELD takes hours where GALS takes minutes -- but a single ratio should not be quoted as if it were precise. A solo, sequential re-measurement of GALS and ACkELD on seed 0 would remove the denominator's uncertainty; measure_corel5k_solo.py performs it and would take about 12 hours."
   },
   "seeds": [
     0,
@@ -92,16 +102,80 @@
       ],
       "methods": "all (ACkELD/ACkELO fast here, N=502)"
     },
+    "alpha_sweep": {
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "alphas": [
+        0.8,
+        0.9,
+        1.0
+      ],
+      "datasets": [
+        "Gnegative",
+        "Gpositive",
+        "Plant",
+        "emotions",
+        "flags",
+        "scene",
+        "yeast"
+      ],
+      "methods": [
+        "GALS"
+      ],
+      "source_script": "run_alpha_sweep.py:30 (seeds=range(5))",
+      "output": "results/alpha_sweep.csv, summarised in results/alpha_sweep_summary.md",
+      "note": "Parameter-selection support for the alpha sensitivity table; cal500 is listed in the script's docstring but was not run."
+    },
+    "ideal_ratio_sweep": {
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "ideal_ratios": [
+        0.25,
+        0.3333,
+        0.5,
+        0.6667
+      ],
+      "datasets": [
+        "Gnegative",
+        "Plant",
+        "emotions",
+        "yeast"
+      ],
+      "methods": [
+        "GALS"
+      ],
+      "source_script": "run_ideal_ratio_sweep.py:28 (seeds=range(5))",
+      "output": "results/ideal_ratio_sweep.csv, summarised in results/ideal_ratio_sweep_summary.md",
+      "note": "L_ideal sensitivity table; ideal_ratio r means L_ideal = r*L. Four datasets spanning L=6 to L=14."
+    },
     "batch2_corel5k": {
       "seeds_default": [
         0,
         1,
         2
       ],
-      "seeds_ACkELO": [
-        0
+      "seeds_ACkELD": [
+        0,
+        1,
+        2
       ],
-      "note": "ACkELO capped at 1 seed + 12h wall-clock timeout; ACkELD given a defensive 6h timeout. Both DNF past their cap are recorded as status=DNF, not silently dropped."
+      "seeds_ACkELO": [
+        0,
+        1,
+        2
+      ],
+      "wall_clock_cap_hours": 24,
+      "note": "ACkELD and ACkELO both ran seeds 0, 1 and 2 under the common 24h wall-clock cap. Result of the ACkELD re-run at that cap (rerun_corel5k_ackeld.py): all three seeds completed, mean 44101s +/- 214s (12.25h), no DNF. The same seed 0 had previously been recorded as DNF against a 6h cap, so that DNF reflected the cap rather than a run that does not finish. corel5k now has no DNF, not_implemented or skipped row for any method. Runs exceeding the cap would still be recorded as status=DNF rather than dropped."
     },
     "batch3_mediamill": {
       "seeds_default": [
@@ -109,10 +183,33 @@
         1,
         2
       ],
-      "seeds_ACkELO": [
-        0
+      "seeds_ACkELD": [
+        0,
+        1,
+        2
       ],
-      "note": "same ACkELD/ACkELO timeout treatment as corel5k."
+      "seeds_ACkELO": [
+        0,
+        1,
+        2
+      ],
+      "wall_clock_cap_hours_as_run": 6,
+      "cap_applied_to_methods": [
+        "LP",
+        "ACkELD",
+        "ACkELO"
+      ],
+      "note": "On mediamill, LP, ACkELD and ACkELO share one 6h wall-clock cap (step3b_mediamill_continue.py:28,81); on corel5k the cap applied to ACkELD only. Outcomes: ACkELD seed 0 out_of_memory, seeds 1-2 DNF at the cap; LP out_of_memory on all three seeds. mediamill has not been re-run under the unified 24h cap."
+    },
+    "timeout_policy": {
+      "uniform_wall_clock_cap_hours": 24,
+      "applies_to": "corel5k / mediamill re-runs from 2026-08-24 onward",
+      "rationale": "A single cap for every capped method, set above the longest run anywhere in the study (GALS on mediamill, 22.4h), so that whether a run is reported as a result or as DNF no longer depends on which method-specific cap happened to be in force. Earlier per-method caps are recorded in as_run_history.",
+      "as_run_history": {
+        "corel5k": "ACkELD 6h (step2b_corel5k_reverify.py:28); ACkELO uncapped in practice (finished in ~290-340s)",
+        "mediamill": "LP / ACkELD / ACkELO all 6h (step3b_mediamill_continue.py:28,81)",
+        "GALS": "never capped on any dataset; ran 11.1-22.4h on mediamill"
+      }
     }
   },
   "run_counts_note": "actual per-(dataset, method) execution counts and outcomes (ok/DNF/not_implemented/error/skipped_seed_limit) are in results/run_counts.json, generated post-hoc by gals.analyze.record_run_counts() over the raw CSVs -- not duplicated here since this file is written before the sweep runs."

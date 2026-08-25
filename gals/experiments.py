@@ -82,8 +82,8 @@ def capture_environment(path=None, rf_params=None, cfg=None):
                  "single-threaded; no joblib/multiprocessing parallelism "
                  "is used inside model training. gals.runner uses a "
                  "separate subprocess per method only for the "
-                 "method_timeouts wall-clock cap (ACkELO on corel5k/"
-                 "mediamill), not for speed."),
+                 "method_timeouts wall-clock cap (ACkELD and ACkELO on "
+                 "corel5k/mediamill), not for speed."),
     }
 
     if path:
